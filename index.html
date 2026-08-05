@@ -1,0 +1,499 @@
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <title>Prep Buddy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+        font-family: 'Inter', sans-serif;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        overflow-y: auto;
+        position: relative;
+        background: #05070d;
+        padding: 40px 20px;
+        }
+        .aurora {
+        position: fixed; inset: 0;
+        background:
+            radial-gradient(circle at 20% 20%, rgba(200,225,235,0.5) 0%, transparent 40%),
+            radial-gradient(circle at 30% 55%, #0ea5c4 0%, transparent 45%),
+            radial-gradient(circle at 65% 40%, #0a1930 0%, transparent 55%),
+            radial-gradient(circle at 80% 75%, #0891b2 0%, transparent 45%),
+            linear-gradient(160deg, #0c1220 0%, #060a12 100%);
+        filter: blur(40px) saturate(1.3);
+        z-index: 0;
+        }
+        .grain {
+        position: fixed; inset: 0; opacity: 0.05; z-index: 1;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+        .card {
+        position: relative; z-index: 2;
+        background: rgba(255,255,255,0.08);
+        backdrop-filter: blur(24px) saturate(1.2);
+        -webkit-backdrop-filter: blur(24px) saturate(1.2);
+        border-radius: 24px;
+        padding: 40px;
+        width: 520px;
+        max-width: 100%;
+        border: 1px solid rgba(255,255,255,0.18);
+        box-shadow: 0 25px 70px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.15);
+        }
+        .badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: rgba(255,255,255,0.12); color: #bff2ff;
+        font-size: 12px; font-weight: 600; padding: 5px 12px;
+        border-radius: 100px; margin-bottom: 16px; letter-spacing: 0.03em;
+        border: 1px solid rgba(255,255,255,0.15);
+        }
+        h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 6px; color: #ffffff; }
+        .subtitle { font-size: 14px; color: rgba(255,255,255,0.65); margin-bottom: 20px; line-height: 1.55; }
+
+        .tabs { display: flex; gap: 6px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 12px; }
+        .tab-btn { flex: 1; width: auto; padding: 9px; font-size: 13px; font-weight: 600; background: transparent; color: rgba(255,255,255,0.6); border: none; border-radius: 9px; cursor: pointer; }
+        .tab-btn.active { background: rgba(255,255,255,0.12); color: #ffffff; }
+
+        .modules { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .module-pill {
+        width: auto; padding: 6px 14px; font-size: 12px; font-weight: 500;
+        background: rgba(255,255,255,0.06); color: #cfccc4;
+        border: 1px solid rgba(255,255,255,0.15); border-radius: 100px; cursor: pointer;
+        transition: background 0.15s ease;
+        }
+        .module-pill:hover { background: rgba(255,255,255,0.12); }
+        .module-pill.active { background: #d4af5f; color: #0e0e10; border-color: #d4af5f; }
+
+        label { font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.75); display: block; margin-bottom: 7px; }
+        input[type="text"], input[type="number"] {
+        width: 100%; padding: 13px 14px; border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 12px; font-size: 14px; font-family: inherit; margin-bottom: 18px;
+        outline: none; background: rgba(0,0,0,0.2); color: #ffffff; transition: border-color 0.15s ease;
+        }
+        input::placeholder { color: rgba(255,255,255,0.4); }
+        input:focus { border-color: #4dd8f0; }
+
+        .row-2 { display: flex; gap: 12px; }
+        .row-2 > div { flex: 1; }
+
+        .difficulty-row { display: flex; gap: 8px; margin-bottom: 18px; }
+        .diff-btn {
+        flex: 1; width: auto; padding: 8px; font-size: 12px; font-weight: 600;
+        background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.7);
+        border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; cursor: pointer;
+        }
+        .diff-btn.active { background: rgba(77,216,240,0.18); color: #4dd8f0; border-color: #4dd8f0; }
+
+        .upload-zone {
+        border: 1.5px dashed rgba(255,255,255,0.25); border-radius: 12px; padding: 24px 16px;
+        text-align: center; margin-bottom: 18px; cursor: pointer; color: rgba(255,255,255,0.6);
+        font-size: 13px; transition: border-color 0.15s ease;
+        }
+        .upload-zone:hover { border-color: #4dd8f0; }
+        .upload-zone.has-file { border-color: #d4af5f; color: #d4af5f; }
+        #file-input { display: none; }
+
+        button.primary {
+        width: 100%; padding: 14px; background: linear-gradient(135deg, #ffffff, #d6ecf2);
+        color: #0a1622; border: none; border-radius: 12px; font-size: 14px; font-weight: 700;
+        font-family: inherit; cursor: pointer; transition: transform 0.1s ease, opacity 0.15s ease;
+        }
+        button.primary:hover { opacity: 0.92; }
+        button.primary:active { transform: scale(0.98); }
+        button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Exam view */
+        #exam-view { display: none; margin-top: 8px; }
+        .exam-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+        .exam-title { font-size: 15px; font-weight: 700; color: #fff; }
+        .exam-sub { font-size: 12px; color: rgba(255,255,255,0.55); }
+        .progress-row { display: flex; justify-content: space-between; font-size: 11.5px; color: rgba(255,255,255,0.55); margin-bottom: 6px; margin-top: 14px; }
+        .progress-bar-track { width: 100%; height: 5px; border-radius: 100px; background: rgba(255,255,255,0.1); overflow: hidden; margin-bottom: 16px; }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #4dd8f0, #d4af5f); border-radius: 100px; transition: width 0.25s ease; }
+
+        .nav-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .nav-pill {
+        width: 34px; height: 34px; border-radius: 8px; font-size: 12px; font-weight: 700;
+        background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.7);
+        border: 1px solid rgba(255,255,255,0.15); cursor: pointer;
+        }
+        .nav-pill.current { border-color: #4dd8f0; color: #4dd8f0; }
+        .nav-pill.correct { background: rgba(74,222,128,0.15); color: #4ade80; border-color: rgba(74,222,128,0.4); }
+        .nav-pill.incorrect { background: rgba(248,113,113,0.15); color: #f87171; border-color: rgba(248,113,113,0.4); }
+
+        .q-tag { display: inline-block; font-size: 11px; font-weight: 600; color: #4dd8f0; background: rgba(77,216,240,0.12); padding: 4px 10px; border-radius: 100px; margin-bottom: 14px; }
+        .q-text { font-size: 15px; font-weight: 600; color: #f5f4f0; margin-bottom: 16px; line-height: 1.5; }
+
+        .option {
+        display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 10px;
+        border: 1px solid rgba(255,255,255,0.14); margin-bottom: 10px; cursor: pointer;
+        font-size: 13.5px; color: #e5e3dc; transition: background 0.15s ease, border-color 0.15s ease;
+        }
+        .option:hover { background: rgba(255,255,255,0.06); }
+        .option.selected { border-color: #4dd8f0; background: rgba(77,216,240,0.1); }
+        .option.correct { border-color: #4ade80; background: rgba(74,222,128,0.12); color: #86efac; }
+        .option.incorrect { border-color: #f87171; background: rgba(248,113,113,0.12); color: #fca5a5; }
+
+        .hint-link { font-size: 12px; color: #d4af5f; cursor: pointer; margin-bottom: 14px; display: inline-block; }
+        .hint-text { font-size: 12.5px; color: rgba(212,175,95,0.9); margin-bottom: 14px; display: none; background: rgba(212,175,95,0.08); padding: 10px 12px; border-radius: 8px; }
+        .explanation {
+        margin-top: 4px; font-size: 12.5px; color: #b8b5ad; line-height: 1.6; display: none;
+        border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px;
+        }
+
+        .action-row { display: flex; gap: 10px; margin-top: 18px; }
+        .action-row button { width: auto; flex: 1; padding: 12px; border-radius: 10px; font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer; border: none; }
+        .btn-check { background: linear-gradient(135deg, #ffffff, #d6ecf2); color: #0a1622; }
+        .btn-check:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-nav { background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.15) !important; }
+        .btn-nav:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        #final-score {
+        display: none; text-align: center; background: rgba(212,175,95,0.12);
+        border: 1px solid rgba(212,175,95,0.3); border-radius: 12px; padding: 20px; margin-top: 4px;
+        }
+        #final-score .score-num { font-size: 30px; font-weight: 800; color: #d4af5f; }
+        #final-score .score-label { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+    </style>
+    </head>
+    <body>
+    <div class="aurora"></div>
+    <div class="grain"></div>
+    <div class="card">
+        <div class="badge">✦ AI-powered prep</div>
+        <h1>Prep Buddy</h1>
+        <p class="subtitle">Turn any topic — or a photo of your questions — into a scored practice exam.</p>
+
+        <div class="tabs">
+        <button class="tab-btn active" id="tab-topic" onclick="switchTab('topic')">By Topic</button>
+        <button class="tab-btn" id="tab-photo" onclick="switchTab('photo')">Upload Photo</button>
+        </div>
+
+        <!-- SETUP: TOPIC MODE -->
+        <div id="topic-mode">
+        <div class="modules">
+            <button class="module-pill" onclick="selectModule('Data Structures & Algorithms', this)">DSA</button>
+            <button class="module-pill" onclick="selectModule('Operating Systems', this)">OS</button>
+            <button class="module-pill" onclick="selectModule('DBMS - SQL and database concepts', this)">DBMS</button>
+            <button class="module-pill" onclick="selectModule('Computer Networks', this)">Networks</button>
+            <button class="module-pill" onclick="selectModule('Object Oriented Programming in Java', this)">OOP</button>
+            <button class="module-pill" onclick="selectModule('Quantitative Aptitude and Reasoning', this)">Aptitude</button>
+        </div>
+
+        <label>Topic</label>
+        <input type="text" id="topic" placeholder="e.g. SQL joins, process scheduling..." />
+
+        <div class="row-2">
+            <div>
+            <label>Number of questions</label>
+            <input type="number" id="num-questions" value="10" min="1" max="20" />
+            </div>
+            <div>
+            <label>Difficulty</label>
+            <div class="difficulty-row">
+                <button class="diff-btn" onclick="selectDifficulty('Easy', this)">Easy</button>
+                <button class="diff-btn active" onclick="selectDifficulty('Medium', this)">Med</button>
+                <button class="diff-btn" onclick="selectDifficulty('Tough', this)">Tough</button>
+            </div>
+            </div>
+        </div>
+
+        <button class="primary" id="gen-btn" onclick="generateFromTopic()">Generate exam</button>
+        </div>
+
+        <!-- SETUP: PHOTO MODE -->
+        <div id="photo-mode" style="display:none;">
+        <label>Upload a photo of your question paper</label>
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+            📷 Click to choose an image
+        </div>
+        <input type="file" id="file-input" accept="image/*" onchange="handleFileSelect()" />
+
+        <label>Number of questions</label>
+        <input type="number" id="num-questions-photo" value="10" min="1" max="20" />
+
+        <button class="primary" id="photo-gen-btn" onclick="generateFromPhoto()" disabled>Generate exam from photo</button>
+        </div>
+
+        <!-- EXAM VIEW -->
+        <div id="exam-view">
+        <div class="exam-header">
+            <span class="exam-title" id="exam-topic-label">Topic</span>
+            <span class="exam-sub" style="cursor:pointer;text-decoration:underline;" onclick="backToSetup()">Exit exam</span>
+        </div>
+
+        <div class="progress-row">
+            <span id="progress-label">Question 1 of 10</span>
+            <span id="checked-count">0/0 checked</span>
+        </div>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="progress-fill" style="width:0%;"></div></div>
+
+        <div class="nav-grid" id="nav-grid"></div>
+
+        <div id="question-container"></div>
+
+        <div id="final-score">
+            <div class="score-num" id="final-score-num">0/0</div>
+            <div class="score-label">questions correct — nice work!</div>
+            <button class="primary" style="margin-top:16px;" onclick="backToSetup()">Start a new exam</button>
+        </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedDifficulty = "Medium";
+        let selectedFile = null;
+        let questions = [];
+        let currentIndex = 0;
+        let topicLabel = "";
+
+        function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.innerText = text;
+        return div.innerHTML;
+        }
+
+        function switchTab(tab) {
+        document.getElementById("tab-topic").classList.toggle("active", tab === "topic");
+        document.getElementById("tab-photo").classList.toggle("active", tab === "photo");
+        document.getElementById("topic-mode").style.display = tab === "topic" ? "block" : "none";
+        document.getElementById("photo-mode").style.display = tab === "photo" ? "block" : "none";
+        }
+
+        function selectModule(topic, el) {
+        document.getElementById("topic").value = topic;
+        document.querySelectorAll(".module-pill").forEach(btn => btn.classList.remove("active"));
+        el.classList.add("active");
+        }
+
+        function selectDifficulty(level, el) {
+        selectedDifficulty = level;
+        document.querySelectorAll(".diff-btn").forEach(btn => btn.classList.remove("active"));
+        el.classList.add("active");
+        }
+
+        function handleFileSelect() {
+        const input = document.getElementById("file-input");
+        const zone = document.getElementById("upload-zone");
+        const btn = document.getElementById("photo-gen-btn");
+        if (input.files.length > 0) {
+            selectedFile = input.files[0];
+            zone.textContent = "✓ " + selectedFile.name;
+            zone.classList.add("has-file");
+            btn.disabled = false;
+        }
+        }
+
+        function backToSetup() {
+        document.getElementById("exam-view").style.display = "none";
+        document.querySelector(".tabs").style.display = "flex";
+        document.getElementById("final-score").style.display = "none";
+        switchTab("topic");
+        questions = [];
+        currentIndex = 0;
+        }
+
+        function startExam(topic, qs) {
+        topicLabel = topic;
+        questions = qs.map(q => ({ ...q, selected: null, checked: false }));
+        currentIndex = 0;
+
+        document.getElementById("topic-mode").style.display = "none";
+        document.getElementById("photo-mode").style.display = "none";
+        document.querySelector(".tabs").style.display = "none";
+        document.getElementById("exam-view").style.display = "block";
+        document.getElementById("final-score").style.display = "none";
+        document.getElementById("exam-topic-label").innerText = topic;
+
+        buildNavGrid();
+        renderQuestion();
+        }
+
+        function buildNavGrid() {
+        const grid = document.getElementById("nav-grid");
+        grid.innerHTML = "";
+        questions.forEach((q, i) => {
+            const pill = document.createElement("button");
+            pill.className = "nav-pill";
+            pill.innerText = i + 1;
+            pill.id = "navpill-" + i;
+            pill.onclick = () => { currentIndex = i; renderQuestion(); };
+            grid.appendChild(pill);
+        });
+        }
+
+        function updateProgressAndNav() {
+        const total = questions.length;
+        const checkedCount = questions.filter(q => q.checked).length;
+        document.getElementById("checked-count").innerText = `${checkedCount}/${total} checked`;
+        document.getElementById("progress-label").innerText = `Question ${currentIndex + 1} of ${total}`;
+        const pct = Math.round((checkedCount / total) * 100);
+        document.getElementById("progress-fill").style.width = pct + "%";
+
+        questions.forEach((q, i) => {
+            const pill = document.getElementById("navpill-" + i);
+            pill.classList.remove("current", "correct", "incorrect");
+            if (i === currentIndex) pill.classList.add("current");
+            if (q.checked) pill.classList.add(q.selected === q.correct_index ? "correct" : "incorrect");
+        });
+
+        if (checkedCount === total) {
+            const correctCount = questions.filter(q => q.selected === q.correct_index).length;
+            document.getElementById("final-score-num").innerText = `${correctCount}/${total}`;
+            document.getElementById("final-score").style.display = "block";
+        } else {
+            document.getElementById("final-score").style.display = "none";
+        }
+        }
+
+        function renderQuestion() {
+        const q = questions[currentIndex];
+        const container = document.getElementById("question-container");
+
+        let optionsHtml = "";
+        q.options.forEach((opt, oIndex) => {
+            let cls = "option";
+            if (q.checked) {
+            if (oIndex === q.correct_index) cls += " correct";
+            else if (oIndex === q.selected) cls += " incorrect";
+            } else if (oIndex === q.selected) {
+            cls += " selected";
+            }
+            optionsHtml += `<div class="${cls}" onclick="selectOption(${oIndex})">${String.fromCharCode(65 + oIndex)}. ${escapeHtml(opt)}</div>`;
+        });
+
+        container.innerHTML = `
+            <span class="q-tag">MCQ</span>
+            <p class="q-text">${escapeHtml(q.question)}</p>
+            ${optionsHtml}
+            ${!q.checked ? `<span class="hint-link" onclick="toggleHint()">💡 Need a hint?</span><p class="hint-text" id="hint-text">${escapeHtml(q.hint || "")}</p>` : ""}
+            <p class="explanation" id="explanation-text" style="display:${q.checked ? "block" : "none"};">${escapeHtml(q.explanation)}</p>
+            <div class="action-row">
+            <button class="btn-nav" onclick="goPrev()" ${currentIndex === 0 ? "disabled" : ""}>Previous</button>
+            ${!q.checked
+                ? `<button class="btn-check" id="check-btn" onclick="checkAnswer()" ${q.selected === null ? "disabled" : ""}>Check answer</button>`
+                : `<button class="btn-nav" onclick="goNext()" ${currentIndex === questions.length - 1 ? "disabled" : ""}>Next</button>`
+            }
+            </div>
+        `;
+
+        updateProgressAndNav();
+        }
+
+        function toggleHint() {
+        const hint = document.getElementById("hint-text");
+        hint.style.display = hint.style.display === "block" ? "none" : "block";
+        }
+
+        function selectOption(oIndex) {
+        const q = questions[currentIndex];
+        if (q.checked) return;
+        q.selected = oIndex;
+        renderQuestion();
+        }
+
+        function checkAnswer() {
+        const q = questions[currentIndex];
+        if (q.selected === null) return;
+        q.checked = true;
+        renderQuestion();
+        }
+
+        function goNext() {
+        if (currentIndex < questions.length - 1) {
+            currentIndex++;
+            renderQuestion();
+        }
+        }
+        function goPrev() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            renderQuestion();
+        }
+        }
+
+        async function generateFromTopic() {
+        const topic = document.getElementById("topic").value;
+        const numQ = document.getElementById("num-questions").value;
+        if (!topic.trim()) {
+            alert("Please enter or select a topic first.");
+            return;
+        }
+        const btn = document.getElementById("gen-btn");
+        btn.innerText = "Generating...";
+        btn.disabled = true;
+
+        try {
+            const response = await fetch("http://127.0.0.1:8000/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ topic: topic, difficulty: selectedDifficulty, num_questions: parseInt(numQ) || 10 })
+            });
+            const data = await response.json();
+            if (data.error || !data.questions || data.questions.length === 0) {
+            showSetupError(data.error || "no questions returned", generateFromTopic);
+            } else {
+            startExam(data.topic, data.questions);
+            }
+        } catch (err) {
+            showSetupError("Failed to reach the server. Is it still running?", generateFromTopic);
+        }
+
+        btn.innerText = "Generate exam";
+        btn.disabled = false;
+        }
+
+        function showSetupError(message, retryFn) {
+        const existing = document.getElementById("setup-error");
+        if (existing) existing.remove();
+
+        const box = document.createElement("div");
+        box.id = "setup-error";
+        box.style.cssText = "margin-top:14px;padding:12px 14px;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:10px;font-size:12.5px;color:#fca5a5;";
+        box.innerHTML = `The AI service seems busy right now — this usually clears up in a minute.<br><br><b>${message}</b><br><br><span style="text-decoration:underline;cursor:pointer;color:#fff;" id="retry-link">Try again</span>`;
+        document.getElementById("topic-mode").style.display !== "none"
+            ? document.getElementById("topic-mode").appendChild(box)
+            : document.getElementById("photo-mode").appendChild(box);
+
+        document.getElementById("retry-link").onclick = () => {
+            box.remove();
+            retryFn();
+        };
+        }
+
+        async function generateFromPhoto() {
+        if (!selectedFile) return;
+        const numQ = document.getElementById("num-questions-photo").value;
+        const btn = document.getElementById("photo-gen-btn");
+        btn.innerText = "Reading photo & generating...";
+        btn.disabled = true;
+
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        formData.append("num_questions", parseInt(numQ) || 10);
+
+        try {
+            const response = await fetch("http://127.0.0.1:8000/generate-from-image", {
+            method: "POST",
+            body: formData
+            });
+            const data = await response.json();
+            if (data.error || !data.questions || data.questions.length === 0) {
+            showSetupError(data.error || "no questions returned", generateFromPhoto);
+            } else {
+            startExam(data.topic, data.questions);
+            }
+        } catch (err) {
+            showSetupError("Failed to reach the server. Is it still running?", generateFromPhoto);
+        }
+
+        btn.innerText = "Generate exam from photo";
+        btn.disabled = false;
+        }
+    </script>
+    </body>
+    </html>
