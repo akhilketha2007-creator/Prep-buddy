@@ -46,10 +46,10 @@ I'm a 3rd-year CS student prepping for internships and exams. I wanted a tool th
 ## Screenshots
 
 ### Setup screen
-![Setup](screenshots/setup.png)
+![setup](screenshots/setup.png)
 
 ### Taking the exam
-![examview](screenshots/exam-view.png)
+![examview](screenshots/examview.png)
 
 ### Results
-![Result](screenshots/results.png)
+![result](screenshots/result.png)
