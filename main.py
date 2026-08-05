@@ -20,7 +20,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 class TopicRequest(BaseModel):
     topic: str
     difficulty: str = "Medium"
@@ -51,17 +50,13 @@ def parse_json_response(raw_text):
             raw_text = raw_text[4:]
         raw_text = raw_text.strip()
     return json.loads(raw_text)
-
 def clamp_count(n):
     try:
         n = int(n)
     except (TypeError, ValueError):
         n = 5
     return max(1, min(n, 20))
-
-# Try these models in order -- if one is busy/unavailable, fall back to the next
 MODEL_FALLBACK_CHAIN = ["gemini-3-flash-preview", "gemini-2.5-flash-lite", "gemini-2.5-flash"]
-
 def generate_with_retry(contents, max_retries_per_model=2, retry_delay_seconds=2):
     """
     Tries each model in MODEL_FALLBACK_CHAIN. For each model, retries a couple
@@ -79,12 +74,11 @@ def generate_with_retry(contents, max_retries_per_model=2, retry_delay_seconds=2
                 return response
             except Exception as e:
                 last_error = e
-                # Only worth retrying on "busy" style errors -- otherwise move on fast
                 if "UNAVAILABLE" in str(e) or "503" in str(e):
                     time.sleep(retry_delay_seconds)
                     continue
                 else:
-                    break  # non-busy error, no point retrying this model
+                    break
     raise last_error
 
 @app.post("/generate")
@@ -93,15 +87,12 @@ def generate_questions(request: TopicRequest):
     prompt = f"""Generate {count} multiple choice practice questions about "{request.topic}" for a computer science student.
 Difficulty level: {request.difficulty}.
 {MCQ_INSTRUCTIONS}"""
-
     try:
         response = generate_with_retry(prompt)
         parsed = parse_json_response(response.text)
         return {"topic": request.topic, "questions": parsed["questions"]}
     except Exception as e:
         return {"topic": request.topic, "questions": [], "error": str(e)[:150]}
-
-
 @app.post("/generate-from-image")
 async def generate_from_image(file: UploadFile = File(...), num_questions: int = Form(5)):
     image_bytes = await file.read()
